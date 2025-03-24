@@ -16,5 +16,7 @@ public interface CdrRepository extends JpaRepository<CDR, Long> {
     "(c.fromMsisdn = :msisdn OR c.toMsisdn = :msisdn) " +
     "AND c.callStart BETWEEN :start AND :end")
     List<CDR> findCdrsByMsisdnAndDateRange(@Param("msisdn") String msisdn, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
-    List<CDR> findAllByCallStartBetween(LocalDateTime start, LocalDateTime end);
+    @Query("SELECT c FROM CDR c WHERE " +
+            "c.callStart BETWEEN :start AND :end")
+    List<CDR> findAllByDateRange(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

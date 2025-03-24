@@ -21,7 +21,7 @@ public class UdrService {
         this.cdrService = cdrService;
     }
 
-    public List<UDR> getForAllMsisdns(int year, int month) {
+    public List<UDR> getForAll(int year, int month) {
         final List<CDR> cdrList = cdrService.getAllByCallStartBetween(year, month);
         Map<String, List<CDR>> fromMsisdnCdrList = cdrList.stream()
                 .collect(Collectors.groupingBy(CDR::getFromMsisdn));

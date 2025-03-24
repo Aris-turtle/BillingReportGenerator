@@ -25,7 +25,7 @@ public class UdrController {
     @GetMapping
     public ResponseEntity<List<UDR>> getForAll(@RequestParam(value = "month") int year,
                                                @RequestParam(value = "month") int month) {
-        return ResponseEntity.ok(udrService.getForAllMsisdns(year, month));
+        return ResponseEntity.ok(udrService.getForAll(year, month));
 
     }
 
