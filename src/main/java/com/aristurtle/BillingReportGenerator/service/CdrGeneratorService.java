@@ -7,7 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+
+import static com.aristurtle.BillingReportGenerator.util.LocalDateTimeUtils.getEpochMilli;
+import static com.aristurtle.BillingReportGenerator.util.LocalDateTimeUtils.getLocalDateTime;
 
 @Service
 @Slf4j
@@ -22,27 +29,26 @@ public class CdrGeneratorService {
         this.cdrRepository = cdrRepository;
     }
 
-    public List<CDR> generateForYear(Calendar dateFrom,
+    public List<CDR> generateForYear(LocalDateTime dateFrom,
                                      long avgCallDurationMs,
                                      long avgCallDurationStdDevMs,
                                      int recordAmountMin,
                                      int recordAmountMax) {
-        final Calendar dateTo = ((Calendar) dateFrom.clone());
-        dateTo.add(Calendar.YEAR, 1);
+        LocalDateTime dateTo = dateFrom.plusYears(1);
 
-        final int recordAmount = random.nextInt(recordAmountMin + recordAmountMax) + recordAmountMin;
-        log.info("Generating {} CDR in interval from {} to {} ", recordAmount, dateFrom.getTime(), dateTo.getTime());
+        final int recordAmount = random.nextInt(recordAmountMax - recordAmountMin) + recordAmountMin;
+        log.info("Generating {} CDR in interval from {} to {} ", recordAmount, dateFrom, dateTo);
 
         List<CDR> cdrList = new ArrayList<>();
         for (int i = 0; i < recordAmount; i++) {
             final String callType = random.nextBoolean() ? "01" : "02";
-            final long callStart = random.nextLong(dateFrom.getTimeInMillis(), dateTo.getTimeInMillis());
+
+            final long callStart = random.nextLong(getEpochMilli(dateFrom), getEpochMilli(dateTo));
             final long callDuration = (long) random.nextGaussian(avgCallDurationMs, avgCallDurationStdDevMs);
             final long callEnd = callStart + callDuration;
-            final Calendar start = new GregorianCalendar();
-            final Calendar end = new GregorianCalendar();
-            start.setTimeInMillis(callStart);
-            end.setTimeInMillis(callEnd);
+            final LocalDateTime start = getLocalDateTime(callStart);
+            final LocalDateTime end = getLocalDateTime(callEnd);
+
             final String fromMsisdn = subscriberRepository.getRandomMsisdn();
             final String toMsisdn = subscriberRepository.getRandomMsisdn(fromMsisdn);
 

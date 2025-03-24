@@ -5,7 +5,8 @@ import com.aristurtle.BillingReportGenerator.repository.CdrRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 @Service
@@ -18,22 +19,18 @@ public class CdrService {
     }
 
     public List<CDR> getAllByMsisdn(String msisdn) {
-        return cdrRepository.findAllByMsisdn(msisdn);
+        return cdrRepository.findAllByFromMsisdnOrToMsisdn(msisdn, msisdn);
     }
 
     public List<CDR> getAllByCallStartBetween(int year, int month) {
-        Calendar start = Calendar.getInstance();
-        start.set(year, month, 1, 0, 0, 0);
-        Calendar end = Calendar.getInstance();
-        end.set(year, month, start.getActualMaximum(Calendar.DAY_OF_MONTH), 23, 59, 59);
+        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0, 0);
+        LocalDateTime end = start.with(TemporalAdjusters.lastDayOfMonth()).toLocalDate().atTime(23, 59, 59);
         return cdrRepository.findAllByCallStartBetween(start, end);
     }
 
-    public List<CDR> getAllByMsisdnAndCallStartBetween(String msisdn, int year, int month) {
-        Calendar start = Calendar.getInstance();
-        start.set(year, month, 1, 0, 0, 0);
-        Calendar end = Calendar.getInstance();
-        end.set(year, month, start.getActualMaximum(Calendar.DAY_OF_MONTH), 23, 59, 59);
-        return cdrRepository.findAllByMsisdnAndCallStartBetween(msisdn, start, end);
+    public List<CDR> get(String msisdn, int year, int month) {
+        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0, 0);
+        LocalDateTime end = start.with(TemporalAdjusters.lastDayOfMonth()).toLocalDate().atTime(23, 59, 59);
+        return cdrRepository.findAllByFromMsisdnOrToMsisdnAndCallStartBetween(msisdn, msisdn, start, end);
     }
 }

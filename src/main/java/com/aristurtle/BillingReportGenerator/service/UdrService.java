@@ -2,53 +2,60 @@ package com.aristurtle.BillingReportGenerator.service;
 
 import com.aristurtle.BillingReportGenerator.model.CDR;
 import com.aristurtle.BillingReportGenerator.model.UDR;
-import com.aristurtle.BillingReportGenerator.repository.CdrRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.aristurtle.BillingReportGenerator.util.LocalDateTimeUtils.getEpochMilli;
 
 @Service
 public class UdrService {
     private final CdrService cdrService;
-    private final CdrRepository cdrRepository;
 
     @Autowired
-    public UdrService(CdrService cdrService, CdrRepository cdrRepository) {
+    public UdrService(CdrService cdrService) {
         this.cdrService = cdrService;
-        this.cdrRepository = cdrRepository;
     }
 
-//    public List<UDR> get(int year, int month) {
-//        List<CDR> cdrListForMonth = cdrService.getAllByCallStartBetween(year, month);
-//        cdrListForMonth.stream().
-//                map(e -> get)
-//    }
+    public List<UDR> getForAllSubscribers(int year, int month) {
+        final List<CDR> cdrList = cdrService.getAllByCallStartBetween(year, month);
+        Map<String, List<CDR>> fromMsisdnCdrList = cdrList.stream()
+                .collect(Collectors.groupingBy(CDR::getFromMsisdn));
+        Map<String, List<CDR>> toMsisdnCdrList = cdrList.stream()
+                .collect(Collectors.groupingBy(CDR::getToMsisdn));
+        fromMsisdnCdrList.forEach((k, v) -> toMsisdnCdrList.merge(k, v, (l1, l2) -> {
+            l1.addAll(l2);
+            return l1;
+        }));
 
-
-    public UDR get(String msisdn, Calendar month) {
-        List<CDR> allByMsisdn = cdrService.getAllByMsisdn(msisdn);
-        List<CDR> filteredList = allByMsisdn.stream()
-                .filter(cdr ->
-                        cdr.getCallStart().get(Calendar.MONTH) == month.get(Calendar.MONTH))
+        return toMsisdnCdrList.entrySet().stream()
+                .map(entry -> getUdr(entry.getKey(), entry.getValue()))
                 .toList();
-        return getUdr(msisdn, filteredList);
     }
+
 
     public UDR get(String msisdn) {
         List<CDR> allByMsisdn = cdrService.getAllByMsisdn(msisdn);
         return getUdr(msisdn, allByMsisdn);
     }
 
+    public UDR get(String msisdn, int year, int month) {
+        List<CDR> cdrList = cdrService.get(msisdn, year, month);
+        return getUdr(msisdn, cdrList);
+    }
+
     private static UDR getUdr(String msisdn, List<CDR> cdrListByMsisdn) {
         long incomingCallTotalTime = 0;
         long outcomingCallTotalTime = 0;
         for (CDR cdr : cdrListByMsisdn) {
-            if (cdr.getCallType().equals("01"))
-                outcomingCallTotalTime += (cdr.getCallEnd().getTimeInMillis() - cdr.getCallStart().getTimeInMillis());
-            else
-                incomingCallTotalTime += (cdr.getCallEnd().getTimeInMillis() - cdr.getCallStart().getTimeInMillis());
+            final long callDurationMillis = getEpochMilli(cdr.getCallEnd()) - getEpochMilli(cdr.getCallStart());
+            if (cdr.getCallType().equals("01")) {
+                outcomingCallTotalTime += callDurationMillis;
+            } else
+                incomingCallTotalTime += callDurationMillis;
         }
 
         return UDR.builder()
