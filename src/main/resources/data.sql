@@ -1,0 +1,15 @@
+INSERT INTO subscribers (id, msisdn) VALUES (3, '78884443765');
+INSERT INTO subscribers (id, msisdn) VALUES (4, '76544443766');
+INSERT INTO subscribers (id, msisdn) VALUES (5, '75554443767');
+INSERT INTO subscribers (id, msisdn) VALUES (6, '78623443768');
+INSERT INTO subscribers (id, msisdn) VALUES (7, '78884487639');
+INSERT INTO subscribers (id, msisdn) VALUES (8, '79995493770');
+INSERT INTO subscribers (id, msisdn) VALUES (9, '78873456771');
+INSERT INTO subscribers (id, msisdn) VALUES (10, '78884443772');
+INSERT INTO subscribers (id, msisdn) VALUES (11, '75416543773');
+INSERT INTO subscribers (id, msisdn) VALUES (12, '78884123774');
+INSERT INTO subscribers (id, msisdn) VALUES (13, '78884345775');
+INSERT INTO subscribers (id, msisdn) VALUES (14, '78884476526');
+INSERT INTO subscribers (id, msisdn) VALUES (15, '78884489737');
+INSERT INTO subscribers (id, msisdn) VALUES (16, '78889032678');
+INSERT INTO subscribers (id, msisdn) VALUES (17, '78888634869');
