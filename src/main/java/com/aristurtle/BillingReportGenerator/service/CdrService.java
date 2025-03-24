@@ -28,9 +28,9 @@ public class CdrService {
         return cdrRepository.findAllByCallStartBetween(start, end);
     }
 
-    public List<CDR> get(String msisdn, int year, int month) {
+    public List<CDR> getAllByMsisdn(String msisdn, int year, int month) {
         LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0, 0);
         LocalDateTime end = start.with(TemporalAdjusters.lastDayOfMonth()).toLocalDate().atTime(23, 59, 59);
-        return cdrRepository.findAllByFromMsisdnOrToMsisdnAndCallStartBetween(msisdn, msisdn, start, end);
+        return cdrRepository.findCdrsByMsisdnAndDateRange(msisdn, start, end);
     }
 }

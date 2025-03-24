@@ -5,6 +5,7 @@ import com.aristurtle.BillingReportGenerator.model.UDR;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,7 +21,7 @@ public class UdrService {
         this.cdrService = cdrService;
     }
 
-    public List<UDR> getForAllSubscribers(int year, int month) {
+    public List<UDR> getForAllMsisdns(int year, int month) {
         final List<CDR> cdrList = cdrService.getAllByCallStartBetween(year, month);
         Map<String, List<CDR>> fromMsisdnCdrList = cdrList.stream()
                 .collect(Collectors.groupingBy(CDR::getFromMsisdn));
@@ -37,13 +38,13 @@ public class UdrService {
     }
 
 
-    public UDR get(String msisdn) {
+    public UDR getForMsisdn(String msisdn) {
         List<CDR> allByMsisdn = cdrService.getAllByMsisdn(msisdn);
         return getUdr(msisdn, allByMsisdn);
     }
 
-    public UDR get(String msisdn, int year, int month) {
-        List<CDR> cdrList = cdrService.get(msisdn, year, month);
+    public UDR getForMsisdn(String msisdn, int year, int month) {
+        List<CDR> cdrList = cdrService.getAllByMsisdn(msisdn, year, month);
         return getUdr(msisdn, cdrList);
     }
 
@@ -60,8 +61,17 @@ public class UdrService {
 
         return UDR.builder()
                 .msisdn(msisdn)
-                .incomingCall(new UDR.CallInfo(Long.toString(incomingCallTotalTime)))
-                .outcomingCall(new UDR.CallInfo(Long.toString(outcomingCallTotalTime)))
+                .incomingCall(toCallInfo(incomingCallTotalTime))
+                .outcomingCall(toCallInfo(outcomingCallTotalTime))
                 .build();
+    }
+
+    private static UDR.CallInfo toCallInfo(long callDurationMillis) {
+        final Duration duration = Duration.ofMillis(callDurationMillis);
+        final long hours = duration.toHours();
+        final int minutes = duration.toMinutesPart();
+        final long seconds = duration.toSeconds();
+        final String formatedString = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        return new UDR.CallInfo(formatedString);
     }
 }

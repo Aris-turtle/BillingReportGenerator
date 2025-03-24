@@ -25,7 +25,7 @@ public class UdrController {
     @GetMapping
     public ResponseEntity<List<UDR>> getForAll(@RequestParam(value = "month") int year,
                                                @RequestParam(value = "month") int month) {
-        return ResponseEntity.ok(udrService.getForAllSubscribers(year, month));
+        return ResponseEntity.ok(udrService.getForAllMsisdns(year, month));
 
     }
 
@@ -36,10 +36,10 @@ public class UdrController {
         if (year.isPresent() != month.isPresent())
             throw new InvalidRequestException("Parameters year and month must be present or not present together");
         if (year.isPresent()) {
-            final UDR udr = udrService.get(msisdn, year.get(), month.get());
+            final UDR udr = udrService.getForMsisdn(msisdn, year.get(), month.get());
             return ResponseEntity.ok(udr);
         }
-        return ResponseEntity.ok(udrService.get(msisdn));
+        return ResponseEntity.ok(udrService.getForMsisdn(msisdn));
     }
 
     @ExceptionHandler
